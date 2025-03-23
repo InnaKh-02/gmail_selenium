@@ -3,30 +3,22 @@ import java.time.Duration;
 import java.util.List;
 
 public class MainPage extends BasePage {
-    By newMailButtonLocator = By.xpath("//div[text()='Compose']");
-    By skipButtonLocator = By.cssSelector("img[aria-label^='Save & close']");
-    By sendButtonLocator = By.cssSelector("div[role='button'][aria-label^='Send']");
-
-    By recipientLocator = By.xpath("//input[contains(@aria-label, 'To')]");
-    By subjectLocator = By.name("subjectbox");
     By bodyLocator = By.xpath("//*[contains(@role,'textbox')]");
-
     By mailLocator = By.cssSelector("div.ae4.UI");
-
 
     public MainPage(WebDriver driver) {
         super(driver);
     }
 
     public void createDraft(String recipient, String subject, String body) {
-        clickElement(newMailButtonLocator);
-        enterText(recipientLocator,recipient);
-        enterText(subjectLocator,subject);
+        clickElement(By.xpath("//div[text()='Compose']"));
+        enterText(By.xpath("//input[contains(@aria-label, 'To')]"),recipient);
+        enterText(By.name("subjectbox"),subject);
         enterText(bodyLocator, body);
-        clickElement(skipButtonLocator);
+        clickElement(By.cssSelector("img[aria-label^='Save & close']"));
     }
 
-    public void sendDraft(String recipient, String subject, String body) {
+    public boolean isDraftCorrect(String recipient, String subject, String body) {
         List<WebElement> inboxEmails = waitAndFindElements(mailLocator);
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
@@ -36,46 +28,53 @@ public class MainPage extends BasePage {
                 driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
                 WebElement recipientElement = driver.findElement(By.xpath(
                         "//div[contains(@class, 'oL aDm az9')]"));
-                WebElement subjectElement = driver.findElement(subjectLocator);
-
                 WebElement bodyElement = driver.findElement(bodyLocator);
-
-                if (!recipientElement.getText().equals(recipient)) {
-                    subjectElement.clear();
-                    recipientElement.sendKeys(recipient);
-                }
-                if (!subjectElement.getAttribute("value").equals(subject)) {
-                    subjectElement.clear();
-                    subjectElement.sendKeys(subject);
-                }
-                if (!bodyElement.getText().equals(body)) {
-                    bodyElement.clear();
-                    bodyElement.sendKeys(body);
-                }
+                boolean isRecipientCorrect = recipientElement.getText().equals(recipient);
+                boolean isBodyCorrect = bodyElement.getText().equals(body);
+                return isRecipientCorrect && isBodyCorrect;
             }
         }
-        clickElement(sendButtonLocator);
+        return false;
+    }
+
+    public void sendDraft(String recipient, String subject) {
+        List<WebElement> inboxEmails = waitAndFindElements(mailLocator);
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+        for (WebElement e : inboxEmails) {
+            if (e.isDisplayed() && e.getText().contains(subject) && e.getText().contains(recipient)) {
+                e.click();
+            }
+        }
+        clickElement(By.cssSelector("div[role='button'][aria-label^='Send']"));
         clickElement(mailLocator);
     }
 
     public boolean isDraftPresent(String recipient, String subject, String body) {
         List<WebElement> drafts = waitAndFindElements(By.cssSelector("tr.zA.yO"));
-        for (WebElement draft : drafts) {
-            if (draft.isDisplayed() && draft.getText().contains(subject)) {
-                draft.click();
-                driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
-                WebElement recipientElement = driver.findElement(
-                        By.xpath("//div[contains(@class, 'oL aDm az9')]"));
-                WebElement subjectElement = driver.findElement(subjectLocator);
-                WebElement bodyElement = driver.findElement(bodyLocator);
+        if(drafts != null){
+            for (WebElement draft : drafts) {
+                if (draft.isDisplayed() && draft.getText().contains(subject)) {
+                    draft.click();
+                    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
+                    WebElement recipientElement = driver.findElement(
+                            By.xpath("//div[contains(@class, 'oL aDm az9')]"));
+                    WebElement bodyElement = driver.findElement(bodyLocator);
 
-                if (recipientElement.getText().equals(recipient)
-                        && subjectElement.getAttribute("value").equals(subject)
-                        && bodyElement.getText().equals(body)) {
-                    return true;
+                    if (recipientElement.getText().equals(recipient)
+                            && bodyElement.getText().equals(body)) {
+                        return true;
+                    }
                 }
             }
         }
         return false;
+    }
+
+    public void logout(){
+        WebElement accountButtonElement = waitAndFindElement(By.xpath(
+                "//a[contains(@aria-label, 'Google Account')]"));
+        driver.get(accountButtonElement.getAttribute("href"));
+        clickElement(By.className("sign-out"));
     }
 }

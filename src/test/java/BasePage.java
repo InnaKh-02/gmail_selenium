@@ -1,4 +1,5 @@
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.*;
@@ -15,14 +16,22 @@ public class BasePage {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    public List waitAndFindElements(By locator) {
-        wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
-        return driver.findElements(locator);
+    public List<WebElement> waitAndFindElements(By locator) {
+        try {
+            wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
+            return driver.findElements(locator);
+        } catch (TimeoutException e) {
+            return null;
+        }
     }
 
     public WebElement waitAndFindElement(By locator) {
-        wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-        return driver.findElement(locator);
+        try {
+            wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            return driver.findElement(locator);
+        } catch (TimeoutException e) {
+            return null;
+        }
     }
 
     public void clickElement(By locator) {
