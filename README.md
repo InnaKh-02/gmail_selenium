@@ -28,7 +28,7 @@ This project automates Gmail's functionality using Selenium WebDriver and Java. 
 5. **Verify Sent Mail**
    - Ensure the email is no longer in 'Drafts' and is in the 'Sent' folder.
 
-6. **Logout** (currently commented out due to issues with element interaction).
+6. **Logout** 
 
 ## Test Execution
 
