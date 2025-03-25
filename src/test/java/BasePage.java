@@ -2,10 +2,10 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.*;
 
 import java.time.Duration;
-import java.util.List;
 
 public class BasePage {
     protected WebDriver driver;
@@ -14,33 +14,23 @@ public class BasePage {
     public BasePage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        PageFactory.initElements(driver, this);
     }
 
-    public List<WebElement> waitAndFindElements(By locator) {
+    public WebElement waitAndFindElement(WebElement element) {
         try {
-            wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
-            return driver.findElements(locator);
+            wait.until(ExpectedConditions.visibilityOf(element));
+            return element;
         } catch (TimeoutException e) {
             return null;
         }
     }
 
-    public WebElement waitAndFindElement(By locator) {
-        try {
-            wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-            return driver.findElement(locator);
-        } catch (TimeoutException e) {
-            return null;
-        }
+    public void clickElement(WebElement element) {
+        waitAndFindElement(element).click();
     }
 
-    public void clickElement(By locator) {
-        WebElement element = waitAndFindElement(locator);
-        element.click();
-    }
-
-    public void enterText(By locator, String text) {
-        WebElement element = waitAndFindElement(locator);
-        element.sendKeys(text);
+    public void enterText(WebElement element, String text) {
+        waitAndFindElement(element).sendKeys(text);
     }
 }
