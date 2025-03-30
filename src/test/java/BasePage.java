@@ -1,15 +1,13 @@
-import org.openqa.selenium.By;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.*;
 
 import java.time.Duration;
+import java.util.List;
 
 public class BasePage {
     protected WebDriver driver;
-    protected WebDriverWait wait;
+    protected static WebDriverWait wait;
 
     public BasePage(WebDriver driver) {
         this.driver = driver;
@@ -17,20 +15,40 @@ public class BasePage {
         PageFactory.initElements(driver, this);
     }
 
-    public WebElement waitAndFindElement(WebElement element) {
+    public static void waitWithJsExecutor(WebDriver driver) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeAsyncScript("window.setTimeout(arguments[arguments.length - 1], 2000);");
+    }
+
+    public static WebElement waitForVisibility(WebElement element) {
         try {
-            wait.until(ExpectedConditions.visibilityOf(element));
-            return element;
-        } catch (TimeoutException e) {
+            return wait.until(ExpectedConditions.refreshed(ExpectedConditions.visibilityOf(element)));
+        } catch (TimeoutException | StaleElementReferenceException e) {
             return null;
         }
     }
 
+    public static void waitForVisibility(List<WebElement> elements) {
+        try {
+            boolean isFound = wait.until(driver -> !elements.isEmpty());
+            if (isFound) {
+            }
+        } catch (TimeoutException | StaleElementReferenceException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void clickElement(WebElement element) {
-        waitAndFindElement(element).click();
+        WebElement el = waitForVisibility(element);
+        if (el != null) {
+            System.out.println(el.getText() + ", " + el.getTagName() + " was clicked");
+            el.click();
+        } else {
+            throw new NoSuchElementException("Element not found: " + element);
+        }
     }
 
     public void enterText(WebElement element, String text) {
-        waitAndFindElement(element).sendKeys(text);
+        waitForVisibility(element).sendKeys(text);
     }
 }
