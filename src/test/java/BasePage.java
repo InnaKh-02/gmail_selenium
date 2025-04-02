@@ -41,7 +41,6 @@ public class BasePage {
     public void clickElement(WebElement element) {
         WebElement el = waitForVisibility(element);
         if (el != null) {
-            System.out.println(el.getText() + ", " + el.getTagName() + " was clicked");
             el.click();
         } else {
             throw new NoSuchElementException("Element not found: " + element);
